@@ -1,6 +1,7 @@
 # This script takes care of testing your crate
 
 set -ex
+TARGET="$MACHINE-$VENDOR-$OS"
 
 # TODO This is the "test phase", tweak it as you see fit
 main() {

@@ -3,6 +3,8 @@
 set -ex
 
 main() {
+    TARGET="$MACHINE-$VENDOR-$OS"
+
     local src=$(pwd) \
           stage=
 
