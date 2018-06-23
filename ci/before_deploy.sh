@@ -24,7 +24,7 @@ main() {
 
     # TODO Update this to package the right artifacts
     local binary="jason"
-    local artifact="jason-$TARGET"
+    local artifact="jason-$OS-$MACHINE"
     if [ "$TARGET" != "${TARGET%"windows"*}" ]; then
         binary="$binary.exe"
         artifact="$artifact.exe"
