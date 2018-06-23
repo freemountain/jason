@@ -6,14 +6,14 @@ main() {
     local src=$(pwd) \
           stage=
 
-    case $TRAVIS_OS_NAME in
-        linux)
-            stage=$(mktemp -d)
-            ;;
-        osx)
-            stage=$(mktemp -d -t tmp)
-            ;;
-    esac
+    # case $TRAVIS_OS_NAME in
+    #     linux)
+    #         stage=$(mktemp -d)
+    #         ;;
+    #     osx)
+    #         stage=$(mktemp -d -t tmp)
+    #         ;;
+    # esac
 
     test -f Cargo.lock || cargo generate-lockfile
 
@@ -21,13 +21,20 @@ main() {
     cross rustc --bin jason --target $TARGET --release -- -C lto
 
     # TODO Update this to package the right artifacts
-    cp target/$TARGET/release/jason $stage/
+    local binary="jason"
+    local artifact="jason-$TARGET"
+    if [ "$TARGET" != "${TARGET%"windows"*}" ]; then
+        binary="$binary.exe"
+        artifact="$artifact.exe"
+    fi
 
-    cd $stage
-    tar czf $src/$CRATE_NAME-$TRAVIS_TAG-$TARGET.tar.gz *
+    cp "target/$TARGET/release/"$binary $src/$artifact
+
+    #cd $stage
+    #tar czf $src/$CRATE_NAME-$TRAVIS_TAG-$TARGET.tar.gz *
     cd $src
 
-    rm -rf $stage
+    #rm -rf $stage
 }
 
 main
