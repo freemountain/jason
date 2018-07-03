@@ -1,7 +1,7 @@
 use std::error::Error as StdError;
 
 use serde_json;
-use serde_json::{Value, Error};
+use serde_json::{Error, Value};
 
 use super::super::{Format, FormatType};
 
@@ -12,12 +12,12 @@ impl Format for Json {
         FormatType::JSON
     }
 
+    fn to_string(&self, input: &Value) -> Result<String, Box<StdError>> {
+        serde_json::to_string_pretty(input).map_err(From::from)
+    }
+
     fn from_string(&self, input: &str) -> Result<Value, Box<StdError>> {
         let result: Result<Value, Error> = serde_json::from_str(input);
-
-        match result {
-            Ok(value) => Ok(value),
-            Err(error) => Err(From::from(error)),
-        }
+        result.map_err(From::from)
     }
 }

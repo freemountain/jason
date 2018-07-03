@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::fs::File;
 use std::io::prelude::*;
 
@@ -63,61 +64,92 @@ fn create_csv(agrs: &clap::ArgMatches) -> Box<formats::Csv> {
     })
 }
 
-fn main() {
-    let matches = App::new("Jason")
-        .version("0.0.1")
-        .about("convert csv or yaml to json")
-        .arg(
-            Arg::with_name("INPUT")
-                .takes_value(true)
-                .short("i")
-                .long("input")
-                .help("input to parse"),
-        )
-        .arg(
-            Arg::with_name("FORMAT")
-                .takes_value(true)
-                .short("f")
-                .long("format"),
-        )
-        .arg(
-            Arg::with_name("CSV:FORMAT")
-                .takes_value(true)
-                .long("csv:format"),
-        )
-        .arg(
-            Arg::with_name("CSV:SKIP")
-                .takes_value(true)
-                .long("csv:skip"),
-        )
-        .arg(
-            Arg::with_name("CSV:HEADERS")
-                .takes_value(true)
-                .long("csv:headers"),
-        )
-        .get_matches();
-
+fn create_dispatcher(matches: &clap::ArgMatches) -> FormatDispatcher {
     let mut dispatcher = FormatDispatcher::new();
+
     dispatcher.add_format(Box::new(formats::Json {}));
     dispatcher.add_format(Box::new(formats::Yaml {}));
     dispatcher.add_format(create_csv(&matches));
 
-    let input_arg = matches.value_of("INPUT");
-    let format_arg = matches.value_of("FORMAT");
+    dispatcher
+}
 
-    let parsed_format_arg = format_arg.and_then(FormatType::from_extension);
-    let parsed_input_format = input_arg.and_then(FormatType::from_filename);
+fn get_format_arg(matches: &clap::ArgMatches, name: &str) -> FormatType {
+    matches
+        .value_of(name)
+        .and_then(FormatType::from_extension)
+        .unwrap_or(FormatType::JSON)
+}
 
-    let format = parsed_format_arg
-        .or(parsed_input_format)
-        .expect("Please set the --format argument");
+fn parse_args<'a>() -> clap::ArgMatches<'a> {
+    let format_args = vec![
+        Arg::with_name("CSV:FORMAT")
+            .takes_value(true)
+            .long("csv:format"),
+        Arg::with_name("CSV:SKIP")
+            .takes_value(true)
+            .long("csv:skip"),
+        Arg::with_name("CSV:HEADERS")
+            .takes_value(true)
+            .long("csv:headers"),
+    ];
 
-    let content = (match input_arg {
-        Some(f) => read_file(f),
-        None => read_stdin(),
-    }).unwrap();
+    let args = vec![
+        Arg::with_name("INPUT")
+            .takes_value(true)
+            .short("i")
+            .long("input")
+            .help("input format"),
+        Arg::with_name("OUTPUT")
+            .takes_value(true)
+            .short("o")
+            .long("output")
+            .help("output format"),
+    ];
 
-    let parsed = dispatcher.from_string(format, content.as_str()).unwrap();
+    App::new("Jason")
+        .version("0.0.1")
+        .about("convert csv or yaml to json")
+        .args(&args)
+        .args(&format_args)
+        .get_matches()
+}
 
-    println!("{}", serde_json::to_string_pretty(&parsed).unwrap());
+fn run() -> Option<(&'static str, Box<Error>)> {
+    let args = parse_args();
+    let input_format = get_format_arg(&args, "INPUT");
+    let output_format = get_format_arg(&args, "OUTPUT");
+    let dispatcher = create_dispatcher(&args);
+
+    let may_input = read_stdin();
+    if may_input.is_err() {
+        return Some(("could not read stdin", Box::new(may_input.unwrap_err())));
+    }
+    let input = may_input.unwrap();
+
+    let may_parsed = dispatcher.from_string(input_format, input.as_str());
+    if may_parsed.is_err() {
+        let error: Box<Error> = may_parsed.unwrap_err();
+        return Some(("could parse input", error));
+    }
+    let parsed = may_parsed.unwrap();
+
+
+    let may_stringified = dispatcher.to_string(output_format, &parsed);
+    if may_stringified.is_err() {
+        let error: Box<Error> = may_stringified.unwrap_err();
+        return Some(("could stringify input", error));
+    }
+    let stringified = may_stringified.unwrap();
+    println!("{}", stringified);
+
+    None
+}
+
+fn main() {
+
+    if let Some((reason, error)) = run() {
+        println!("{} {}", reason, error);
+        std::process::exit(1);
+    }
 }

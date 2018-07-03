@@ -51,4 +51,23 @@ impl FormatDispatcher {
             format.from_string(input)
         }
     }
+
+    pub fn to_string(
+        &self,
+        format_type: FormatType,
+        input: &serde_json::Value,
+    ) -> Result<String, Box<StdError>> {
+        let may_format = (&self.formats[format_type]).as_ref();
+
+        if may_format.is_none() {
+            Err(Box::new(Error::new(
+                ErrorKind::NotFound,
+                format!("Format not found: {}", format_type),
+            )))
+        } else {
+            let format = may_format.unwrap();
+
+            format.to_string(input)
+        }
+    }
 }

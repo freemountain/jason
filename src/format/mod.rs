@@ -16,4 +16,5 @@ pub trait Format {
     fn get_type(&self) -> FormatType;
 
     fn from_string(&self, input: &str) -> Result<serde_json::Value, Box<Error>>;
+    fn to_string(&self, input: &serde_json::Value) -> Result<String, Box<Error>>;
 }
