@@ -96,6 +96,11 @@ dependencies = [
 ]
 
 [[package]]
+name = "gcc"
+version = "0.3.54"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
 name = "itoa"
 version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -106,7 +111,26 @@ version = "0.1.0"
 dependencies = [
  "clap 2.32.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "formats 0.1.0",
+ "jsonnet-rs 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_json 1.0.24 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "jsonnet-rs"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "jsonnet-sys 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc 0.2.42 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "jsonnet-sys"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "gcc 0.3.54 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc 0.2.42 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -278,7 +302,10 @@ dependencies = [
 "checksum dtoa 0.4.3 (registry+https://github.com/rust-lang/crates.io-index)" = "6d301140eb411af13d3115f9a562c85cc6b541ade9dfa314132244aaee7489dd"
 "checksum enum-map 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)" = "caa1769f019df7ccd8f9a741d2d608309688d0f1bd8a8747c14ac993660c761c"
 "checksum enum-map-derive 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)" = "f915c8ef505ce27b6fa51515463938aa2e9135081fefc93aef786539a646a365"
+"checksum gcc 0.3.54 (registry+https://github.com/rust-lang/crates.io-index)" = "5e33ec290da0d127825013597dbdfc28bee4964690c7ce1166cbc2a7bd08b1bb"
 "checksum itoa 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)" = "5adb58558dcd1d786b5f0bd15f3226ee23486e24b7b58304b60f64dc68e62606"
+"checksum jsonnet-rs 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)" = "dea3859e42541d9ecee82613c105234d2af74e1794c255af2d155d1e7ad57558"
+"checksum jsonnet-sys 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)" = "2948bf138e186428476eaea072b4b07ef3cd8e6bcaeab941a65ec783a927e6ef"
 "checksum libc 0.2.42 (registry+https://github.com/rust-lang/crates.io-index)" = "b685088df2b950fccadf07a7187c8ef846a959c142338a48f9dc0b94517eb5f1"
 "checksum linked-hash-map 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)" = "70fb39025bc7cdd76305867c4eccf2f2dcf6e9a57f5b21a93e1c2d86cd03ec9e"
 "checksum memchr 2.0.1 (registry+https://github.com/rust-lang/crates.io-index)" = "796fba70e76612589ed2ce7f45282f5af869e0fdd7cc6199fa1aa1f1d591ba9d"

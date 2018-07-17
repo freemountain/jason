@@ -1,10 +1,10 @@
+use clap::{App, Arg, ArgMatches};
+
 use std::error::Error;
 
 use super::super::formats::formats;
 use super::super::formats::{Dispatcher, Type};
 use super::super::utils::{read_stdin, split};
-
-use super::clap::{App, Arg, ArgMatches};
 use super::CommandResult;
 
 fn create_csv(agrs: &ArgMatches) -> Box<formats::Csv> {
