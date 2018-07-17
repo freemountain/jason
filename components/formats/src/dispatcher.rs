@@ -3,18 +3,18 @@ use std::io::{Error, ErrorKind};
 
 extern crate serde_json;
 
-use super::format_type::FormatType;
+use super::Type;
 use super::Format;
 use enum_map::EnumMap;
 
-pub struct FormatDispatcher {
+pub struct Dispatcher {
     //formats: Has
-    formats: EnumMap<FormatType, Option<Box<Format>>>,
+    formats: EnumMap<Type, Option<Box<Format>>>,
 }
 
-impl FormatDispatcher {
-    pub fn new() -> FormatDispatcher {
-        FormatDispatcher {
+impl Dispatcher {
+    pub fn new() -> Dispatcher {
+        Dispatcher {
             formats: Default::default(),
         }
     }
@@ -24,7 +24,7 @@ impl FormatDispatcher {
         self.formats[format_type] = Some(format);
     }
 
-    pub fn has_format_type(&self, format_type: FormatType) -> bool {
+    pub fn has_format_type(&self, format_type: Type) -> bool {
         let may_format = (&self.formats[format_type]).as_ref();
 
         match may_format {
@@ -35,7 +35,7 @@ impl FormatDispatcher {
 
     pub fn from_string(
         &self,
-        format_type: FormatType,
+        format_type: Type,
         input: &str,
     ) -> Result<serde_json::Value, Box<StdError>> {
         let may_format = (&self.formats[format_type]).as_ref();
@@ -54,7 +54,7 @@ impl FormatDispatcher {
 
     pub fn to_string(
         &self,
-        format_type: FormatType,
+        format_type: Type,
         input: &serde_json::Value,
     ) -> Result<String, Box<StdError>> {
         let may_format = (&self.formats[format_type]).as_ref();

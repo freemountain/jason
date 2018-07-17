@@ -1,14 +1,12 @@
 use std::error::Error;
 
 use csv;
-use serde;
 use serde::de::Error as SerdeError;
-use serde::de::Expected;
 use serde::de::Unexpected;
 use serde_json;
 use serde_json::Value;
 
-use super::super::{Format, FormatType};
+use super::super::{Format, Type};
 
 mod csv_error;
 mod csv_output_format;
@@ -272,8 +270,8 @@ impl Csv {
 }
 
 impl Format for Csv {
-    fn get_type(&self) -> FormatType {
-        FormatType::CSV
+    fn get_type(&self) -> Type {
+        Type::CSV
     }
 
     fn to_string(&self, input: &Value) -> Result<String, Box<Error>> {

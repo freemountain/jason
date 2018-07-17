@@ -3,13 +3,13 @@ use std::error::Error as StdError;
 use serde_json;
 use serde_json::{Error, Value};
 
-use super::super::{Format, FormatType};
+use super::super::{Format, Type};
 
 pub struct Json {}
 
 impl Format for Json {
-    fn get_type(&self) -> FormatType {
-        FormatType::JSON
+    fn get_type(&self) -> Type {
+        Type::JSON
     }
 
     fn to_string(&self, input: &Value) -> Result<String, Box<StdError>> {

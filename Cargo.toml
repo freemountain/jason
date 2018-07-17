@@ -3,16 +3,15 @@ name = "jason"
 version = "0.1.0"
 authors = ["freemountain <dominik.freiberger@stylelounge.de>"]
 
-[[bin]]
-name = "jason"
-path = "bin/jason.rs"
-
 [dependencies]
 clap = "2.31.2"
-serde = "1.0.66"
+# serde = "1.0.66"
 serde_json = "1.0.21"
-serde_yaml = "0.7.5"
-csv = "1.0.0"
-enum-map = "0.4.1"
-enum-map-derive = "0.4.0"
-quick-error = "1.2.2"
+
+[dependencies.formats]
+path = "components/formats"
+
+[workspace]
+members = [
+  "components/formats",
+]

@@ -3,13 +3,13 @@ use std::error::Error;
 use serde_json::Value;
 use serde_yaml;
 
-use super::super::{Format, FormatType};
+use super::super::{Format, Type};
 
 pub struct Yaml {}
 
 impl Format for Yaml {
-    fn get_type(&self) -> FormatType {
-        FormatType::YAML
+    fn get_type(&self) -> Type {
+        Type::YAML
     }
 
     fn to_string(&self, input: &Value) -> Result<String, Box<Error>> {
