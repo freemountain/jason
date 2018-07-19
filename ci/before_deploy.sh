@@ -1,6 +1,8 @@
 # This script takes care of building your crate and packaging it for release
 
 set -ex
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
+source "$DIR/common.sh"
 
 main() {
     TARGET="$MACHINE-$VENDOR-$OS"
@@ -20,7 +22,7 @@ main() {
     test -f Cargo.lock || cargo generate-lockfile
 
     # TODO Update this to build the artifacts that matter to you
-    cross rustc --bin jason --target $TARGET --release -- -C lto
+    run rustc --bin jason --release -- -C lto
 
     # TODO Update this to package the right artifacts
     local binary="jason"
@@ -30,7 +32,12 @@ main() {
         artifact="$artifact.exe"
     fi
 
-    cp "target/$TARGET/release/"$binary $src/$artifact
+    if [ "$USE_CROSS" = true ] ; then
+        cp "target/$TARGET/release/"$binary $src/$artifact
+    else
+        cp "target/release/"$binary $src/$artifact
+    fi
+
 
     #cd $stage
     #tar czf $src/$CRATE_NAME-$TRAVIS_TAG-$TARGET.tar.gz *
