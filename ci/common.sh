@@ -4,10 +4,10 @@ TARGET="$MACHINE-$VENDOR-$OS"
 USE_CROSS=true
 
 
-if [ "$TARGET" == "x86_64-unknown-linux-musl" ]; then
-    USE_CROSS=false
-    DOCKER="docker run -it --rm -v $PWD:/workspace freemountain/alpine-rs:0.6"
-fi
+# if [ "$TARGET" == "x86_64-unknown-linux-musl" ]; then
+#     USE_CROSS=false
+#     DOCKER="docker run -it --rm -v $PWD:/workspace freemountain/alpine-rs:0.6"
+# fi
 
 
 run() {
