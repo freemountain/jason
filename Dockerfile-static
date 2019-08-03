@@ -1,0 +1,19 @@
+FROM alpine:3.8
+
+RUN apk add wget libstdc++
+
+
+WORKDIR /workspace
+
+RUN wget https://github.com/freemountain/jason/releases/download/v0.0.1-beta.16/jason-linux-musl-x86_64
+RUN mv jason-linux-musl-x86_64 jason && chmod +x jason
+RUN mkdir -p usr/lib lib
+RUN cp /lib/ld-musl-x86_64.so.1 lib/ld-musl-x86_64.so.1
+RUN cp /usr/lib/libstdc++.so.6.0.22 usr/lib/libstdc++.so.6
+RUN cp /lib/ld-musl-x86_64.so.1 lib/ld-musl-x86_64.so.1
+RUN cp /usr/lib/libgcc_s.so.1 usr/lib/libgcc_s.so.1
+FROM scratch
+WORKDIR /
+COPY --from=0 /workspace .
+
+ENTRYPOINT ["./jason"]

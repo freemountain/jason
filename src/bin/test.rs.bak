@@ -1,0 +1,190 @@
+extern crate tokio; // 0.1.7
+extern crate tokio_fs;
+
+use std::str::Utf8Error;
+
+use tokio::io::AsyncRead;
+use tokio::prelude::{Async::*, Poll, Stream};
+use tokio_fs::Stdin;
+
+struct LineSplitter {
+    u_buffer: Vec<u8>,
+    s_buffer: String,
+    line_buffer: Vec<String>,
+}
+
+impl LineSplitter {
+    pub fn new() -> LineSplitter {
+        LineSplitter {
+            s_buffer: String::new(),
+            u_buffer: Vec::new(),
+            line_buffer: Vec::new(),
+        }
+    }
+
+    pub fn add(&mut self, new_bytes: Vec<u8>) {
+        let bytes = {
+            let mut cloned_buffer = self.u_buffer.clone();
+            cloned_buffer.extend(new_bytes);
+            cloned_buffer
+        };
+        self.u_buffer.clear();
+        self.parse_bytes(bytes.as_slice());
+    }
+
+    fn parse_bytes<'a>(&mut self, bytes: &'a [u8]) -> Result<&'a str, Utf8Error> {
+        match std::str::from_utf8(bytes) {
+            Ok(valid) => Ok(valid),
+            Err(error) => {
+                let (valid, after_valid) = bytes.split_at(error.valid_up_to());
+
+                if valid.len() == 0 {
+                    Err(error)
+                } else {
+                    for c in after_valid.iter() {
+                        self.u_buffer.push(*c);
+                    }
+                    self.parse_bytes(valid)
+                }
+            }
+        }
+    }
+
+    fn add_str(&mut self, new_line_part: &str) -> () {
+        let ll = {
+            let mut l = self.s_buffer.clone();
+            l.push_str(new_line_part);
+            l
+        };
+
+        let last_char_is_new_line = new_line_part
+            .chars()
+            .last()
+            .map(|c| c == '\n')
+            .unwrap_or(false);
+
+        let mut parts: Vec<&str> = ll.split("\n").collect();
+        let parts_len = parts.len();
+
+        self.s_buffer.clear();
+        if parts_len > 0 && !last_char_is_new_line {
+            self.s_buffer.push_str(parts[parts_len - 1]);
+            parts.pop();
+        }
+
+        for l in parts.into_iter() {
+            self.line_buffer.push(l.to_string());
+        }
+    }
+}
+
+pub struct Input {
+    stdin: Stdin,
+    splitter: LineSplitter,
+}
+
+/*
+
+impl Input {
+    fn add_bytes(&mut self, bytes: Vec<u8>, lines: &Vec<&str>) {
+        match std::str::from_utf8(&self.char_buffer) {
+            Ok(valid) => {
+                self.char_buffer.clear();
+                self.line_buffer.push_str(valid);
+                self.add_str(lines);
+            }
+            Err(error) => {
+                let (valid, after_valid) = self.char_buffer.split_at(error.valid_up_to());
+                self.char_buffer.clear();
+                for c in after_valid.iter() {
+                    self.char_buffer.push(*c);
+                }
+                self.line_buffer.push_str(valid);
+                self.add_str(lines);
+            }
+        };
+    }
+
+    fn add_str(&mut self, lines: &Vec<&str>) -> () {
+        let parts: Vec<&str> = self.line_buffer.split("\n").collect();
+        let parts_len = parts.len();
+        let prefix = self.line_buffer.clone();
+
+        if parts_len > 0 {
+            self.line_buffer.push_str(parts[parts_len - 1]);
+            parts.pop();
+        }
+
+        if parts_len > 1 {
+            prefix.push_str(parts[0]);
+            parts[0] = &prefix;
+
+            for l in parts.into_iter() {
+                lines.push(l);
+            }
+        }
+    }
+}
+*/
+
+impl Input {
+    pub fn new(stdin: tokio_fs::Stdin) -> Input {
+        Input {
+            splitter: LineSplitter::new(),
+            stdin: stdin,
+        }
+    }
+}
+impl Stream for Input {
+    type Item = Vec<String>;
+    type Error = ();
+
+    fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
+        println!("start poll");
+
+        let read = |stdin: &mut Stdin,
+                    buf: &mut Vec<u8> /*poll_result: Result<tokio::prelude::Async<usize>, std::io::Error>*/|
+         -> Result<bool, Self::Error> {
+            let poll_result = stdin.poll_read(buf);
+            match poll_result {
+                Ok(Ready(_)) => Ok(true),
+                Ok(NotReady) => Ok(false),
+                Err(_) => Err(()),
+            }
+        };
+
+        let mut poll_buffer: Vec<u8> = Vec::new();
+        let mut line_buffer: Self::Item = Vec::new();
+
+        let mut last_read: Result<bool, Self::Error> = read(&mut self.stdin, &mut poll_buffer);
+
+        /*  println!(
+            "end poll {}",
+            std::str::from_utf8(&self.buffer).unwrap_or("#emty#")
+        );
+*/
+        match last_read {
+            Ok(_) => {
+                self.splitter.add(poll_buffer);
+                if line_buffer.len() > 0 {
+                    Ok(Ready(Some(line_buffer)))
+                } else {
+                    Ok(NotReady)
+                }
+            }
+            Err(_) => Err(()),
+        }
+    }
+}
+
+fn main() {
+    let stdin = tokio_fs::stdin();
+    let i = Input::new(stdin);
+
+    let server = i.for_each(|n| {
+        println!("bytes num: {:?}", n);
+        Ok(())
+    });
+
+    tokio::run(server)
+}
